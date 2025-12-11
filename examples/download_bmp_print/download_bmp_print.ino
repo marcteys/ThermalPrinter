@@ -29,7 +29,7 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // BMP image URL
-const char* bmpUrl = "http://localhost/phototicket/images/last.bmp";
+const char* bmpUrl = "https://raw.githubusercontent.com/marcteys/ThermalPrinter/refs/heads/master/examples/download_bmp_print/image.bmp";
 
 // Printer pins (ESP32)
 const byte rxPin = 16;
