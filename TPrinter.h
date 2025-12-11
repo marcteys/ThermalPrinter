@@ -195,6 +195,10 @@ class Tprinter : public Print {
       printBitmap(uint8_t *bitmap, uint16_t width, uint16_t height, uint8_t scale = 1, bool center = true),
       // scale: default - 1, orginal size; if 0 or bigger than possible - max possible scale
       // center: if not set or true - centered
+      printBitmapOld(uint8_t *bitmap, uint16_t width, uint16_t height, uint8_t mode = 0, bool center = true),
+      // Uses older GS v 0 ESC/POS command
+      // mode: 0=normal, 1=double-width, 2=double-height, 3=quadruple size
+      // center: if not set or true - centered
 
       // use below only if printer use hardware serial
       identifyChars(char *tab),  // require Serial.print(baudrate); in void setup()

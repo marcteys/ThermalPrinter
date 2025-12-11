@@ -533,3 +533,83 @@ void Tprinter::printBitmap(uint8_t *bitmap, uint16_t width, uint16_t height, uin
     }
   }
 }
+
+void Tprinter::printBitmapOld(uint8_t *bitmap, uint16_t width, uint16_t height, uint8_t mode, bool center) {
+  // GS v 0 command - older ESC/POS bitmap printing
+  // mode: 0=normal, 1=double-width, 2=double-height, 3=quadruple
+  if (mode > 3) mode = 0;
+
+  // Calculate width scaling based on mode
+  uint8_t widthMultiplier = (mode == 1 || mode == 3) ? 2 : 1;
+  uint8_t heightMultiplier = (mode == 2 || mode == 3) ? 2 : 1;
+
+  // Calculate bytes per row of original bitmap
+  uint16_t bytesPerRow = (width + 7) / 8;
+
+  // Calculate margin for centering
+  uint16_t marginBytes = 0;
+  if (center) {
+    uint16_t scaledWidth = width * widthMultiplier;
+    if (scaledWidth < widthInDots) {
+      marginBytes = (widthInDots - scaledWidth) / 8 / 2;
+    }
+  }
+
+  // Total bytes per row including margin
+  uint16_t totalBytesPerRow = bytesPerRow + marginBytes;
+
+  // Count black pixels for timing calculation
+  uint16_t blackPixels = 0;
+  if (!dtrEnabled) {
+    for (uint16_t i = 0; i < (uint16_t)bytesPerRow * height; i++) {
+      uint8_t byte = bitmap[i];
+      for (uint8_t bit = 0; bit < 8; bit++) {
+        if (byte & (1 << bit)) blackPixels++;
+      }
+    }
+  }
+
+  wait();
+  feed(1);
+
+  // Send GS v 0 command
+  wait();
+  stream->write(A_GS);     // GS = 0x1D
+  stream->write('v');      // v = 0x76
+  stream->write('0');      // 0 = 0x30
+  stream->write(mode);     // mode: 0-3
+
+  // Send width in bytes (little endian)
+  stream->write(totalBytesPerRow & 0xFF);        // xL
+  stream->write((totalBytesPerRow >> 8) & 0xFF); // xH
+
+  // Send height in dots (little endian)
+  stream->write(height & 0xFF);        // yL
+  stream->write((height >> 8) & 0xFF); // yH
+
+  setDelay(8 * char_send_time);
+
+  // Send bitmap data row by row
+  for (uint16_t row = 0; row < height; row++) {
+    // Send margin bytes (zeros) for centering
+    for (uint16_t m = 0; m < marginBytes; m++) {
+      wait();
+      stream->write((uint8_t)0);
+      setDelay(char_send_time);
+    }
+
+    // Send actual bitmap data for this row
+    for (uint16_t col = 0; col < bytesPerRow; col++) {
+      wait();
+      stream->write(bitmap[row * bytesPerRow + col]);
+      setDelay(char_send_time);
+    }
+  }
+
+  // Set final delay based on bitmap size and black pixels
+  uint16_t scaledWidth = width * widthMultiplier;
+  uint16_t scaledHeight = height * heightMultiplier;
+  setDelayBitmap(scaledWidth, scaledHeight, blackPixels * widthMultiplier * heightMultiplier);
+
+  cursor = 0;
+}
