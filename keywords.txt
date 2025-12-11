@@ -40,3 +40,4 @@ printCharset		KEYWORD2
 printCodepage		KEYWORD2
 printPosition		KEYWORD2
 printBitmap        	KEYWORD2
+printBitmapOld		KEYWORD2

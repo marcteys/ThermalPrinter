@@ -60,6 +60,8 @@ void setup() {
 - [Waiting for end of print process](#waiting-for-end-of-print-process)
 - [Change heating parametrs](#change-heating-parametrs)
 - [Print bitmap - scalable and centered](#print-bitmap---scalable-and-centered)
+- [Print bitmap using old ESC/POS command](#print-bitmap-using-old-escpos-command)
+- [Download and print BMP images from URL](#download-and-print-bmp-images-from-url)
 
 ## Waiting for end of print process
 
@@ -127,5 +129,63 @@ printBitmap(*bitmap, width, height, scale = 1, center = true)
 - height of bitmap - real value, in above example - 75
 - scale - default 1, if 0 or greater than the maximum possible scale - the image is printed at it's maximum size
 - center - default true
+
+## Print bitmap using old ESC/POS command
+
+```
+printBitmapOld(*bitmap, width, height, mode = 0, center = true)
+```
+
+Alternative bitmap printing function using the older GS v 0 ESC/POS command. May work better with some older printer models.
+
+- bitmap - uint8_t array, each bit in byte - one printed dot (same format as printBitmap)
+- width of bitmap - must be a multiple of 8
+- height of bitmap - real value in dots
+- mode - scaling mode:
+  - 0 = normal size (default)
+  - 1 = double width
+  - 2 = double height
+  - 3 = quadruple size (2x width and 2x height)
+- center - default true, centers the bitmap on the page
+
+Example:
+```
+myPrinter.printBitmapOld(qrcode, 40, 37, 1);  // Print double-width
+```
+
+## Download and print BMP images from URL
+
+The library includes a complete example for ESP32 that downloads BMP images from the web and prints them directly. See [examples/bitmap_printing_old/](examples/bitmap_printing_old/).
+
+**Features:**
+- WiFi connectivity with HTTPS support
+- Full BMP format parser (1-bit, 4-bit, 8-bit paletted, 24-bit, 32-bit)
+- Automatic color-to-monochrome conversion
+- Memory-efficient streaming (no need to store entire image)
+- Automatic width limiting to printer capability (384 pixels)
+- Support for both top-down and bottom-up BMP formats
+
+**Requirements:**
+- ESP32 board (uses WiFi, HTTPClient libraries)
+- Internet connection
+
+**Quick setup:**
+1. Update WiFi credentials in the example
+2. Set the image URL
+3. Upload and run
+
+**Example usage:**
+```cpp
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "TPrinter.h"
+
+const char* imageUrl = "https://example.com/image.bmp";
+
+// Download and print automatically
+downloadAndPrintBMP(imageUrl);
+```
+
+The example includes complete BMP parsing functions (`read16()`, `read32()`, `skip()`, `read8n()`) that handle the BMP format and convert color images to monochrome for thermal printing.
 
 
