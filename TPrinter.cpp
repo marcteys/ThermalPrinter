@@ -569,9 +569,6 @@ void Tprinter::printBitmapOld(uint8_t *bitmap, uint16_t width, uint16_t height, 
     }
   }
 
-  wait();
-  feed(1);
-
   // Send GS v 0 command
   wait();
   stream->write(A_GS);     // GS = 0x1D
@@ -592,6 +589,7 @@ void Tprinter::printBitmapOld(uint8_t *bitmap, uint16_t width, uint16_t height, 
   // Send bitmap data row by row
   for (uint16_t row = 0; row < height; row++) {
     // Send margin bytes (zeros) for centering
+    
     for (uint16_t m = 0; m < marginBytes; m++) {
       wait();
       stream->write((uint8_t)0);
@@ -600,9 +598,9 @@ void Tprinter::printBitmapOld(uint8_t *bitmap, uint16_t width, uint16_t height, 
 
     // Send actual bitmap data for this row
     for (uint16_t col = 0; col < bytesPerRow; col++) {
-      wait();
+      if(!dtrEnabled)  wait();
       stream->write(bitmap[row * bytesPerRow + col]);
-      setDelay(char_send_time);
+     if(!dtrEnabled)  setDelay(char_send_time);
     }
   }
 
